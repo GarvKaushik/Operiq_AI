@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TaskStatus {
+  queued
+  running
+  awaiting_confirmation
+  completed
+  failed
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  sessions     Session[]
+  integrations Integration[]
+  telegramLink TelegramLink[]
+  tasks        Task[]
+  files        File[]
+  destinations AllowedDestination[]
+  savedSheets  SavedSheet[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id // sha256 of the cookie token
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Integration {
+  id        String   @id @default(cuid())
+  userId    String
+  provider  String // "google" | "slack"
+  tokens    String // AES-256-GCM encrypted JSON
+  meta      Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@map("integrations")
+}
+
+model TelegramLink {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  chatId    String?   @unique
+  linkedAt  DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("telegram_links")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  userId      String
+  channel     String     @default("telegram")
+  chatId      String
+  instruction String
+  fileId      String?
+  status      TaskStatus @default(queued)
+  result      String?
+  error       String?
+  agentState  Json? // saved conversation so retries and confirmations resume
+  updateId    String?    @unique // incoming update id, for dedup
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps       TaskStep[]
+
+  @@index([userId, createdAt])
+  @@map("tasks")
+}
+
+model TaskStep {
+  id         String    @id @default(cuid())
+  taskId     String
+  stepIndex  Int
+  tool       String
+  status     String // running | completed | failed | rejected | awaiting_confirmation
+  input      Json?
+  output     Json?
+  error      String?
+  externalId String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  task       Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // idempotency key (task_id, step_index, action)
+  @@unique([taskId, stepIndex, tool])
+  @@map("task_steps")
+}
+
+model File {
+  id        String   @id @default(cuid())
+  userId    String
+  taskId    String?
+  name      String
+  path      String
+  mimeType  String
+  size      Int
+  kind      String // "upload" | "report"
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}
+
+model AllowedDestination {
+  id            String   @id @default(cuid())
+  userId        String
+  provider      String // "slack"
+  destinationId String
+  name          String
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider, destinationId])
+  @@map("allowed_destinations")
+}
+
+model SavedSheet {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String // short name used in chat, lowercase
+  spreadsheetId String
+  title         String? // the sheet's real title, for display
+  range         String?
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@map("saved_sheets")
+}

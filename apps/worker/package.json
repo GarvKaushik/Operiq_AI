@@ -1,0 +1,26 @@
+{
+  "name": "@app/worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@app/shared": "workspace:*",
+    "@slack/web-api": "^7.10.0",
+    "bullmq": "^5.58.5",
+    "canvas": "^3.2.3",
+    "chart.js": "^4.5.0",
+    "chartjs-node-canvas": "^5.0.0",
+    "exceljs": "^4.4.0",
+    "googleapis": "^160.0.0",
+    "openai": "^5.23.0",
+    "pdfkit": "^0.17.2",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/pdfkit": "^0.17.3"
+  }
+}
