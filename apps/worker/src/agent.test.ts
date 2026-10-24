@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { chat, runTool, update, findFirst } = vi.hoisted(() => ({
+const { chat, runTool, update, findMany } = vi.hoisted(() => ({
   chat: vi.fn(),
   runTool: vi.fn(),
   update: vi.fn(),
-  findFirst: vi.fn(),
+  findMany: vi.fn(),
 }))
 vi.mock('./llm', () => ({ chat }))
 vi.mock('./runTool', () => ({ runTool }))
 vi.mock('@app/shared', () => ({
-  db: { task: { update, findFirst }, savedSheet: { findMany: async () => [] }, agent: { findUnique: async () => null } },
+  db: { task: { update, findMany }, savedSheet: { findMany: async () => [] }, agent: { findUnique: async () => null } },
   env: { TIMEZONE: 'UTC' },
 }))
 
@@ -28,7 +28,7 @@ beforeEach(() => {
   chat.mockReset()
   runTool.mockReset()
   update.mockReset()
-  findFirst.mockReset().mockResolvedValue(null)
+  findMany.mockReset().mockResolvedValue([])
 })
 
 describe('pendingToolCalls', () => {
@@ -75,13 +75,53 @@ describe('runAgent', () => {
   })
 
   it('a reply to the previous question keeps its context and file', async () => {
-    findFirst.mockResolvedValue({ instruction: 'Analyze this file', result: 'Which column?', fileId: 'file1' })
+    findMany.mockResolvedValue([{ instruction: 'Analyze this file', result: 'Which column?', fileId: 'file1' }])
     chat.mockResolvedValueOnce({ content: 'Done.', tool_calls: undefined })
 
     await runAgent({ ...task(), instruction: 'revenue' })
     const messages = chat.mock.calls[0][0]
     expect(messages[0].content).toContain('file_id "file1"')
     expect(messages.slice(1, 4).map((m: any) => m.content)).toEqual(['Analyze this file', 'Which column?', 'revenue'])
+  })
+
+  it('keeps details spread over several messages, oldest first', async () => {
+    // findMany returns newest first, as the query orders by createdAt desc
+    findMany.mockResolvedValue([
+      { instruction: '6pm', result: 'Got it, a title?', fileId: null },
+      { instruction: '25 October 5pm', result: 'Until when?', fileId: null },
+      { instruction: 'schedule a meeting with a@x.com', result: 'Which date and time?', fileId: null },
+    ])
+    chat.mockResolvedValueOnce({ content: 'Done.', tool_calls: undefined })
+
+    await runAgent({ ...task(), instruction: 'Meeting with Garv' })
+    const contents = chat.mock.calls[0][0].slice(1, 8).map((m: any) => m.content)
+    expect(contents).toEqual([
+      'schedule a meeting with a@x.com', 'Which date and time?',
+      '25 October 5pm', 'Until when?',
+      '6pm', 'Got it, a title?',
+      'Meeting with Garv',
+    ])
+  })
+
+  it('sends the model back when it claims a Slack post it never made', async () => {
+    chat
+      .mockResolvedValueOnce({ content: 'Posted the report to #sales on Slack!', tool_calls: undefined })
+      .mockResolvedValueOnce({ content: null, tool_calls: [toolCall('s1')] })
+      .mockResolvedValueOnce({ content: 'Posted to #sales.', tool_calls: undefined })
+    runTool.mockResolvedValue('{"ts":"1"}')
+
+    const outcome = await runAgent(task())
+    const nudge = chat.mock.calls[1][0].find((m: any) => m.role === 'user' && m.content.startsWith('System check'))
+    expect(nudge.content).toMatch(/never called send_slack_message/)
+    expect(runTool).toHaveBeenCalledWith(expect.objectContaining({ id: 's1' }), 0, expect.anything(), false)
+    expect(outcome).toMatchObject({ kind: 'done', text: 'Posted to #sales.', notes: [] })
+  })
+
+  it('warns the user if the model still claims it after the check', async () => {
+    chat.mockResolvedValue({ content: 'Posted the report to #sales on Slack!', tool_calls: undefined })
+    const outcome = await runAgent(task())
+    expect(chat).toHaveBeenCalledTimes(2)
+    expect(outcome).toMatchObject({ kind: 'done', notes: ['⚠️ Nothing was posted to Slack in this task.'] })
   })
 
   it('stops after the iteration limit', async () => {

@@ -6,9 +6,21 @@ import { useMe } from '@/lib/me'
 import { btnPrimary, card, input, label } from '@/lib/ui'
 
 export default function AccountPage() {
-  const { me } = useMe()
+  const { me, reload } = useMe()
   const [message, setMessage] = useState<{ ok: boolean; text: string }>()
   const [busy, setBusy] = useState(false)
+  const [nameMessage, setNameMessage] = useState<{ ok: boolean; text: string }>()
+
+  async function saveName(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    try {
+      await api('/api/me', { method: 'PUT', body: { name: new FormData(e.currentTarget).get('name') } })
+      await reload()
+      setNameMessage({ ok: true, text: 'Saved' })
+    } catch (err) {
+      setNameMessage({ ok: false, text: (err as Error).message })
+    }
+  }
 
   async function changePassword(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -37,17 +49,20 @@ export default function AccountPage() {
         <p className="mt-1 text-slate-500">Your login details.</p>
       </div>
 
-      <section className={`${card} p-6`}>
-        <dl className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="text-sm text-slate-500">Name</dt>
-            <dd className="font-medium">{me.name ?? '—'}</dd>
+      <section className={`${card} max-w-lg space-y-4 p-6`}>
+        <div>
+          <p className="text-sm text-slate-500">Email</p>
+          <p className="font-medium">{me.email}</p>
+        </div>
+        <form onSubmit={saveName} className="space-y-2">
+          <label htmlFor="name" className={label}>Your name</label>
+          <div className="flex gap-2">
+            <input id="name" name="name" defaultValue={me.name ?? ''} required maxLength={60} placeholder="Your full name" className={input} />
+            <button className={btnPrimary}>Save</button>
           </div>
-          <div>
-            <dt className="text-sm text-slate-500">Email</dt>
-            <dd className="font-medium">{me.email}</dd>
-          </div>
-        </dl>
+          <p className="text-xs text-slate-500">Shown in greetings and on Slack posts, e.g. "{me.agent?.name} · for {me.name?.split(' ')[0] || 'you'}".</p>
+          {nameMessage && <p className={`text-sm ${nameMessage.ok ? 'text-emerald-600' : 'text-rose-600'}`}>{nameMessage.text}</p>}
+        </form>
       </section>
 
       <section className={`${card} max-w-lg space-y-4 p-6`}>

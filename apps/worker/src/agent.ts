@@ -1,12 +1,14 @@
 import type { ChatCompletionMessage, ChatCompletionMessageParam } from 'openai/resources/chat/completions'
 import { db, type Prisma, type Task } from '@app/shared'
+import { unverifiedClaims } from './claims'
 import { NeedsConfirmation } from './errors'
 import { chat } from './llm'
 import { systemPrompt } from './prompt'
 import { runTool, type ToolCall } from './runTool'
 
 export const MAX_ITERATIONS = 8
-const FOLLOW_UP_MINUTES = 15
+const FOLLOW_UP_MINUTES = 30
+const HISTORY_TASKS = 6
 
 /** Saved on the task after every step so retries and confirmations resume where they left off. */
 export type AgentState = {
@@ -17,6 +19,8 @@ export type AgentState = {
   confirmed: string[]
   /** Tool call id waiting for the user's approval. */
   awaiting: string | null
+  /** Set once the model was sent back for claiming an action it never performed. */
+  claimChecked?: boolean
 }
 
 export type AgentOutcome =
@@ -45,8 +49,8 @@ function toAssistantParam(message: ChatCompletionMessage, iteration: number): Ch
 }
 
 /**
- * First messages for a new task. A task finished in the same chat in the last few minutes
- * is included, so a reply to the agent's question keeps its context (and its file).
+ * First messages for a new task. Recent tasks from the same chat are included as conversation
+ * history, so answers spread over several messages ("25 October" ... "5pm" ... "1 hour") add up.
  */
 async function initialState(task: Task): Promise<AgentState> {
   const sheets = await db.savedSheet.findMany({
@@ -54,7 +58,7 @@ async function initialState(task: Task): Promise<AgentState> {
     select: { name: true, title: true, isDefault: true },
   })
   const agent = await db.agent.findUnique({ where: { userId: task.userId }, select: { name: true, personality: true } })
-  const previous = await db.task.findFirst({
+  const recent = await db.task.findMany({
     where: {
       userId: task.userId,
       chatId: task.chatId,
@@ -62,16 +66,19 @@ async function initialState(task: Task): Promise<AgentState> {
       createdAt: { lt: task.createdAt, gte: new Date(task.createdAt.getTime() - FOLLOW_UP_MINUTES * 60_000) },
     },
     orderBy: { createdAt: 'desc' },
+    take: HISTORY_TASKS,
   })
-  const history: ChatCompletionMessageParam[] = previous?.result
-    ? [
-        { role: 'user', content: previous.instruction },
-        { role: 'assistant', content: previous.result },
-      ]
-    : []
+  const fileId = task.fileId ?? recent.find((t) => t.fileId)?.fileId ?? null // newest file in the conversation
+  const history: ChatCompletionMessageParam[] = [...recent]
+    .reverse() // oldest first
+    .filter((t) => t.result)
+    .flatMap((t) => [
+      { role: 'user' as const, content: t.instruction },
+      { role: 'assistant' as const, content: t.result! },
+    ])
   return {
     messages: [
-      { role: 'system', content: systemPrompt({ fileId: task.fileId ?? previous?.fileId ?? null, sheets, agent }) },
+      { role: 'system', content: systemPrompt({ fileId, sheets, agent }) },
       ...history,
       { role: 'user', content: task.instruction },
     ],
@@ -115,6 +122,32 @@ export async function runAgent(task: Task): Promise<AgentOutcome> {
     const param = toAssistantParam(message, state.iterations)
     state.messages.push(param)
     await save()
-    if (!('tool_calls' in param)) return { kind: 'done', text: message.content || 'Done.', notes: state.notes }
+    if ('tool_calls' in param) continue
+
+    // The model may claim an action it never performed: send it back once, then warn the user
+    const text = message.content || 'Done.'
+    const claims = unverifiedClaims(text, calledTools(state.messages))
+    if (claims.length && !state.claimChecked) {
+      state.claimChecked = true
+      state.messages.push({
+        role: 'user',
+        content:
+          `System check: your reply says you ${claims.map((c) => c.what).join(' and ')}, but you never called ` +
+          `${claims.map((c) => c.tool).join(' or ')}. If the user asked for it, call the tool now. Otherwise reply honestly that it was not done.`,
+      })
+      await save()
+      continue
+    }
+    for (const c of claims) state.notes.push(`⚠️ ${c.warning}`)
+    return { kind: 'done', text, notes: state.notes }
   }
+}
+
+/** Names of every tool the model called in this task. */
+function calledTools(messages: ChatCompletionMessageParam[]): Set<string> {
+  const names = new Set<string>()
+  for (const m of messages) {
+    if (m.role === 'assistant') for (const c of (m.tool_calls ?? []) as ToolCall[]) names.add(c.function.name)
+  }
+  return names
 }

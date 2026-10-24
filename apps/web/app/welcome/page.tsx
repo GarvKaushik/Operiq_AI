@@ -59,7 +59,7 @@ export default function WelcomePage() {
 
         <div className="mt-10 space-y-4">
           <Step icon="chat" title="Chat with me on Telegram" text="Send instructions and get results right in your chat." done={me.telegramLinked}>
-            <TelegramLink linked={me.telegramLinked} />
+            <TelegramLink linked={me.telegramLinked} botUsername={me.botUsername} />
           </Step>
           <Step icon="sheet" title="Google Sheets & Calendar" text="Read your sheets and schedule meetings with Meet links." done={has('google')}>
             <a href="/api/oauth/google/start" className={has('google') ? btnSecondary : btnPrimary}>

@@ -40,10 +40,18 @@ export const createCalendarEvent = defineTool({
         conferenceData: { createRequest: { requestId: ctx.key, conferenceSolutionKey: { type: 'hangoutsMeet' } } },
       },
     })
+    // Links go to the user via notes; the model only gets a summary, so it can't repeat them
     ctx.notes.push(`📅 Event: ${data.htmlLink}${data.hangoutLink ? `\n🎥 Meet: ${data.hangoutLink}` : ''}`)
     return {
       externalId: data.id ?? undefined,
-      output: { event_id: data.id, link: data.htmlLink, meet_link: data.hangoutLink },
+      output: {
+        event_id: data.id,
+        title: args.title,
+        start: args.start,
+        end: args.end,
+        attendees: args.attendees,
+        status: 'Event created with a Google Meet link. The event and Meet links are sent to the user automatically.',
+      },
     }
   },
 })

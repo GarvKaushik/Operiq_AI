@@ -22,6 +22,15 @@ export async function dashboardRoutes(app: FastifyInstance) {
     return { ...user, integrations, telegramLinked: Boolean(link), botUsername: env.TELEGRAM_BOT_USERNAME }
   })
 
+  const profileBody = z.object({ name: z.string().trim().min(1, 'Please enter your name').max(60) })
+
+  app.put('/api/me', async (request, reply) => {
+    const body = profileBody.safeParse(request.body)
+    if (!body.success) return reply.code(400).send({ error: body.error.issues[0].message })
+    await db.user.update({ where: { id: request.userId }, data: { name: body.data.name } })
+    return { ok: true }
+  })
+
   // One-time Telegram link: user opens t.me/<bot>?start=<token>
   app.post('/api/telegram/link', async (request) => {
     const token = randomToken(16)

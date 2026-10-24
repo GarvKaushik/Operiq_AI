@@ -10,6 +10,20 @@ function sheetsLine(sheets: SheetInfo[]): string {
   return `Saved Google Sheets: ${list}. Pass the saved name as "sheet"; omit it for the default sheet.`
 }
 
+/** e.g. "Saturday, 24 October 2026, 15:11", so the model resolves "tomorrow" and "25 October" in local time. */
+function localNow(now = new Date()): string {
+  return now.toLocaleString('en-GB', {
+    timeZone: env.TIMEZONE,
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
 type Persona = { name: string; personality: string | null }
 
 type PromptContext = { fileId: string | null; sheets?: SheetInfo[]; agent?: Persona | null }
@@ -31,9 +45,13 @@ export function systemPrompt({ fileId, sheets = [], agent }: PromptContext): str
     '- Never decide yourself whether a channel is approved. Always call the tool; the system checks the approved list.',
     '- Only say you did something (posted, sent, scheduled) if a tool result in this conversation confirms it.',
     '- Ask one short clarifying question only when you cannot proceed, e.g. no file and no sheet to use.',
+    '- Use details the user already gave earlier in this conversation; never ask for them again.',
+    `- Meetings: if no end time or duration is given, use 1 hour. Use ${env.TIMEZONE} unless the user names another ` +
+      'timezone. If no title is given, write a short one. Only ask when the date or start time is missing.',
+    '- You cannot edit an existing calendar event. If asked to change one, say so instead of creating a new event.',
     '- Download links for reports are added to your reply automatically. Do not invent links.',
     '- Reply in short plain text without markdown tables.',
-    `Current time: ${new Date().toISOString()}. Default timezone: ${env.TIMEZONE}.`,
+    `Current local time: ${localNow()} (${env.TIMEZONE}).`,
     sheetsLine(sheets),
     fileId ? `The user's file has file_id "${fileId}". Use it unless they name a Google Sheet.` : '',
   ]

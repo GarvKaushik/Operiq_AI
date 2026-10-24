@@ -84,6 +84,13 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {!me.name && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200">
+          Add your name so Slack posts show who they're for.
+          <Link href="/account" className="font-semibold underline underline-offset-2">Add name</Link>
+        </div>
+      )}
+
       {/* Hero */}
       <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-6 text-white shadow-lg shadow-indigo-500/20 sm:p-8">
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -116,7 +123,7 @@ export default function DashboardPage() {
       <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
         <div className="space-y-6">
           <Integration icon="chat" title="Telegram" subtitle="Where you chat with your agent." connected={me.telegramLinked}>
-            <TelegramLink linked={me.telegramLinked} />
+            <TelegramLink linked={me.telegramLinked} botUsername={me.botUsername} />
           </Integration>
 
           <Integration icon="sheet" title="Google Sheets & Calendar" subtitle="Read sheets and create events with Meet links." connected={Boolean(google)}>

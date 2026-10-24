@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchChannel } from './slack'
+import { matchChannel, slackIdentity } from './slack'
 
 const allowed = [
   { destinationId: 'C123', name: 'sales' },
@@ -18,5 +18,20 @@ describe('slack allowlist matching', () => {
     expect(matchChannel(allowed, '#general')).toBeNull()
     expect(matchChannel(allowed, 'sales-team')).toBeNull()
     expect(matchChannel([], '#sales')).toBeNull()
+  })
+})
+
+describe('slack identity (who a post is for)', () => {
+  it('shows the agent name, the requester and the avatar emoji', () => {
+    expect(slackIdentity({ name: 'Riya', avatar: 'businesswoman' }, 'Garv Kaushik')).toEqual({
+      username: 'Riya · for Garv',
+      icon_emoji: ':female-office-worker:',
+    })
+  })
+
+  it('falls back when the user has no name, no agent or an unknown avatar', () => {
+    expect(slackIdentity({ name: 'Riya', avatar: 'robot' }, null)).toEqual({ username: 'Riya', icon_emoji: ':robot_face:' })
+    expect(slackIdentity(null, 'Garv')).toEqual({ username: 'Assistant · for Garv', icon_emoji: ':robot_face:' })
+    expect(slackIdentity({ name: 'Max', avatar: 'unknown' }, '  ').icon_emoji).toBe(':robot_face:')
   })
 })

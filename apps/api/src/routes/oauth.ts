@@ -11,7 +11,7 @@ import {
 } from '@app/shared'
 import { requireUser } from '../auth'
 
-const SLACK_SCOPES = ['chat:write', 'chat:write.public', 'channels:read', 'channels:join', 'files:write']
+const SLACK_SCOPES = ['chat:write', 'chat:write.public', 'chat:write.customize', 'channels:read', 'channels:join', 'files:write']
 const slackRedirect = () => `${env.APP_URL}/api/oauth/slack/callback`
 const backToDashboard = (status: string) => `${env.APP_URL}/dashboard?connected=${status}`
 
