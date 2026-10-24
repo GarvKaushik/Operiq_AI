@@ -18,10 +18,13 @@ enum TaskStatus {
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
+  name         String?
   passwordHash String
   createdAt    DateTime @default(now())
 
-  sessions     Session[]
+  agent          Agent?
+  sessions       Session[]
+  passwordResets PasswordReset[]
   integrations Integration[]
   telegramLink TelegramLink[]
   tasks        Task[]
@@ -32,6 +35,20 @@ model User {
   @@map("users")
 }
 
+// The user's assistant persona: name, avatar and personality used in replies
+model Agent {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  name        String
+  avatar      String // preset id, e.g. "businesswoman"
+  personality String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("agents")
+}
+
 model Session {
   id        String   @id // sha256 of the cookie token
   userId    String
@@ -40,6 +57,20 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
+}
+
+// One-time password reset links, sent to the user's linked chat
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique // sha256 of the token in the link
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("password_resets")
 }
 
 model Integration {

@@ -2,6 +2,8 @@ import cookie from '@fastify/cookie'
 import Fastify from 'fastify'
 import { env } from '@app/shared'
 import { authRoutes } from './auth'
+import { passwordRoutes } from './password'
+import { agentRoutes } from './routes/agent'
 import { startBot } from './bot'
 import { dashboardRoutes } from './routes/dashboard'
 import { fileRoutes } from './routes/files'
@@ -17,10 +19,12 @@ const app = Fastify({
 
 await app.register(cookie)
 await app.register(authRoutes)
+await app.register(passwordRoutes)
 await app.register(oauthRoutes)
 await app.register(fileRoutes)
 await app.register(dashboardRoutes)
 await app.register(sheetRoutes)
+await app.register(agentRoutes)
 
 app.get('/health', async () => ({ ok: true }))
 

@@ -53,6 +53,7 @@ async function initialState(task: Task): Promise<AgentState> {
     where: { userId: task.userId },
     select: { name: true, title: true, isDefault: true },
   })
+  const agent = await db.agent.findUnique({ where: { userId: task.userId }, select: { name: true, personality: true } })
   const previous = await db.task.findFirst({
     where: {
       userId: task.userId,
@@ -70,7 +71,7 @@ async function initialState(task: Task): Promise<AgentState> {
     : []
   return {
     messages: [
-      { role: 'system', content: systemPrompt(task.fileId ?? previous?.fileId ?? null, sheets) },
+      { role: 'system', content: systemPrompt({ fileId: task.fileId ?? previous?.fileId ?? null, sheets, agent }) },
       ...history,
       { role: 'user', content: task.instruction },
     ],

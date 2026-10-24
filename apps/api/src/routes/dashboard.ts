@@ -12,11 +12,14 @@ export async function dashboardRoutes(app: FastifyInstance) {
   app.get('/api/me', async (request) => {
     const userId = request.userId
     const [user, integrations, link] = await Promise.all([
-      db.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } }),
+      db.user.findUniqueOrThrow({
+        where: { id: userId },
+        select: { email: true, name: true, agent: { select: { name: true, avatar: true, personality: true } } },
+      }),
       db.integration.findMany({ where: { userId }, select: { provider: true, meta: true } }),
       db.telegramLink.findFirst({ where: { userId, chatId: { not: null } } }),
     ])
-    return { email: user.email, integrations, telegramLinked: Boolean(link) }
+    return { ...user, integrations, telegramLinked: Boolean(link), botUsername: env.TELEGRAM_BOT_USERNAME }
   })
 
   // One-time Telegram link: user opens t.me/<bot>?start=<token>

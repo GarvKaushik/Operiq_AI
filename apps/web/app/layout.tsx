@@ -1,21 +1,15 @@
-import Link from 'next/link'
 import type { ReactNode } from 'react'
 import './globals.css'
 
-export const metadata = { title: 'Business Assistant' }
+export const metadata = {
+  title: 'Byizon: your AI business assistant',
+  description: 'Analyze sheets, create reports, schedule meetings and post to Slack, just by chatting.',
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50 text-gray-900">
-        <nav className="border-b bg-white">
-          <div className="mx-auto flex max-w-4xl gap-6 px-4 py-3 text-sm font-medium">
-            <Link href="/">Integrations</Link>
-            <Link href="/tasks">Tasks</Link>
-          </div>
-        </nav>
-        <main className="mx-auto max-w-4xl px-4 py-8">{children}</main>
-      </body>
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">{children}</body>
     </html>
   )
 }

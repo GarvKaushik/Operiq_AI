@@ -13,7 +13,7 @@ import { requireUser } from '../auth'
 
 const SLACK_SCOPES = ['chat:write', 'chat:write.public', 'channels:read', 'channels:join', 'files:write']
 const slackRedirect = () => `${env.APP_URL}/api/oauth/slack/callback`
-const backToDashboard = (status: string) => `${env.APP_URL}/?connected=${status}`
+const backToDashboard = (status: string) => `${env.APP_URL}/dashboard?connected=${status}`
 
 type Callback = { Querystring: { code?: string; state?: string; error?: string } }
 

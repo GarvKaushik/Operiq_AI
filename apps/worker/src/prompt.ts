@@ -10,9 +10,17 @@ function sheetsLine(sheets: SheetInfo[]): string {
   return `Saved Google Sheets: ${list}. Pass the saved name as "sheet"; omit it for the default sheet.`
 }
 
-export function systemPrompt(fileId: string | null, sheets: SheetInfo[] = []): string {
+type Persona = { name: string; personality: string | null }
+
+type PromptContext = { fileId: string | null; sheets?: SheetInfo[]; agent?: Persona | null }
+
+export function systemPrompt({ fileId, sheets = [], agent }: PromptContext): string {
   return [
-    'You are a business assistant. Complete the user\'s instruction using the available tools.',
+    agent
+      ? `You are ${agent.name}, the user's personal AI business assistant. Complete their instruction using the available tools.`
+      : "You are a business assistant. Complete the user's instruction using the available tools.",
+    agent?.personality ? `Personality and tone: ${agent.personality}` : '',
+    'Reply in the language the user writes in (e.g. Hinglish if they write Hinglish).',
     'Rules:',
     '- Never calculate numbers yourself. Use read_sheet / analyze_data results (computed in code) and explain them.',
     '- Look at the data before asking anything. Choose sensible columns yourself (e.g. group by a text column ' +

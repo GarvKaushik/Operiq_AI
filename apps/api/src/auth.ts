@@ -4,7 +4,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { db, randomToken } from '@app/shared'
 
-const SESSION_COOKIE = 'sid'
+export const SESSION_COOKIE = 'sid'
 const SESSION_DAYS = 14
 
 declare module 'fastify' {
@@ -13,7 +13,7 @@ declare module 'fastify' {
   }
 }
 
-const hashToken = (token: string) => createHash('sha256').update(token).digest('hex')
+export const hashToken = (token: string) => createHash('sha256').update(token).digest('hex')
 
 async function startSession(reply: FastifyReply, userId: string) {
   const token = randomToken()
@@ -42,16 +42,19 @@ const credentials = z.object({
   email: z.email().transform((e) => e.toLowerCase()),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 })
+const registration = credentials.extend({
+  name: z.string().trim().min(1, 'Please enter your name').max(60),
+})
 
 export async function authRoutes(app: FastifyInstance) {
   app.post('/api/auth/register', async (request, reply) => {
-    const body = credentials.safeParse(request.body)
+    const body = registration.safeParse(request.body)
     if (!body.success) return reply.code(400).send({ error: body.error.issues[0].message })
     if (await db.user.findUnique({ where: { email: body.data.email } })) {
       return reply.code(409).send({ error: 'Email already registered' })
     }
     const user = await db.user.create({
-      data: { email: body.data.email, passwordHash: await argon2.hash(body.data.password) },
+      data: { email: body.data.email, name: body.data.name, passwordHash: await argon2.hash(body.data.password) },
     })
     await startSession(reply, user.id)
     return { ok: true }

@@ -9,7 +9,7 @@ const { chat, runTool, update, findFirst } = vi.hoisted(() => ({
 vi.mock('./llm', () => ({ chat }))
 vi.mock('./runTool', () => ({ runTool }))
 vi.mock('@app/shared', () => ({
-  db: { task: { update, findFirst }, savedSheet: { findMany: async () => [] } },
+  db: { task: { update, findFirst }, savedSheet: { findMany: async () => [] }, agent: { findUnique: async () => null } },
   env: { TIMEZONE: 'UTC' },
 }))
 

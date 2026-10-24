@@ -39,7 +39,7 @@ Key rules:
 - **Slack allowlist.** `send_slack_message` refuses channels that aren't approved in the dashboard, records a `rejected` step, and tells the user.
 - **No duplicate actions.** Each tool call has an idempotency key `(task_id, step_index, tool)`. A completed step is never re-run. The agent state is saved after every step, so retries resume exactly where they stopped.
 - **Retries.** BullMQ retries transient errors (network, 429, 5xx) with exponential backoff. The Slack client waits out `ratelimited` responses using `Retry-After`. Validation and permission errors are not retried.
-- **Security.** Passwords are hashed with argon2 and sessions use httpOnly cookies. OAuth tokens are encrypted with AES-256-GCM. Download links are HMAC-signed and expire after 24h by default; anything else gets 403. Tokens and query strings are never logged.
+- **Security.** Passwords are hashed with argon2 and sessions use httpOnly cookies. "Reset password using Telegram" sends a single-use, 15-minute reset link to the user's linked Telegram chat (only its hash is stored); a reset logs out all sessions. OAuth tokens are encrypted with AES-256-GCM. Download links are HMAC-signed and expire after 24h by default; anything else gets 403. Tokens and query strings are never logged.
 
 ## Project layout
 
@@ -110,7 +110,7 @@ Tests cover tool permission checks, idempotency, signed URLs, task state transit
 
 ## Demo script
 
-1. **Sign up** at http://localhost:3000.
+1. **Sign up** at http://localhost:3000 (name, email, password), then **create your agent**: pick an avatar, a name (e.g. "Riya") and a personality. The agent replies with that name and tone, in the user's language.
 2. **Link Telegram:** click *Link Telegram*, open the link within 10 minutes, press *Start*. The bot replies "Linked!".
 3. **Connect Google** and **Connect Slack** on the same page. Tick `#sales` under approved Slack channels.
 4. **File → PDF report:** send the bot a CSV or XLSX (e.g. columns `Month, Region, Revenue, Cost`). It replies with a summary and a `📄 Report:` link to a PDF with a chart. Change the link's `sig` and you get 403.
