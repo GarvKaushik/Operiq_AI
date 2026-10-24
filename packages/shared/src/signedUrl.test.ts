@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createOAuthState, readOAuthState, signedFileUrl, verifyFileSignature } from './signedUrl'
+import { createOAuthState, signedFileUrl, verifyFileSignature, verifyOAuthState } from './signedUrl'
 
 function parse(url: string) {
   const u = new URL(url)
@@ -35,10 +35,21 @@ describe('signed download URLs', () => {
 })
 
 describe('OAuth state', () => {
-  it('round-trips the user id and rejects tampering', () => {
+  it('accepts the state for the user who started the flow', () => {
+    expect(verifyOAuthState(createOAuthState('user1'), 'user1')).toBe(true)
+  })
+
+  it('rejects a state created for another user (account injection)', () => {
+    // attacker starts "Connect Google" and sends the link to a logged-in victim
+    expect(verifyOAuthState(createOAuthState('attacker'), 'victim')).toBe(false)
+  })
+
+  it('rejects tampered, expired or malformed states', () => {
     const state = createOAuthState('user1')
-    expect(readOAuthState(state)).toBe('user1')
-    expect(readOAuthState(state.replace('user1', 'user2'))).toBeNull()
-    expect(readOAuthState('garbage')).toBeNull()
+    expect(verifyOAuthState(state.replace('user1', 'user2'), 'user2')).toBe(false)
+    const [userId, , sig] = state.split('.')
+    expect(verifyOAuthState(`${userId}.1000.${sig}`, 'user1')).toBe(false)
+    expect(verifyOAuthState('garbage', 'user1')).toBe(false)
+    expect(verifyOAuthState('', 'user1')).toBe(false)
   })
 })

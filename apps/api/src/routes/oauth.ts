@@ -5,9 +5,9 @@ import {
   createOAuthState,
   env,
   googleOAuthClient,
-  readOAuthState,
   required,
   saveIntegration,
+  verifyOAuthState,
 } from '@app/shared'
 import { requireUser } from '../auth'
 
@@ -28,12 +28,14 @@ export async function oauthRoutes(app: FastifyInstance) {
     return reply.redirect(url)
   })
 
-  app.get<Callback>('/api/oauth/google/callback', async (request, reply) => {
+  // Callbacks require login, and the state must belong to the logged-in user
+  app.get<Callback>('/api/oauth/google/callback', { preHandler: requireUser }, async (request, reply) => {
     const { code, state } = request.query
-    const userId = state && readOAuthState(state)
-    if (!code || !userId) return reply.redirect(backToDashboard('google_failed'))
+    if (!code || !state || !verifyOAuthState(state, request.userId)) {
+      return reply.redirect(backToDashboard('google_failed'))
+    }
     const { tokens } = await googleOAuthClient().getToken(code)
-    await saveIntegration(userId, 'google', tokens)
+    await saveIntegration(request.userId, 'google', tokens)
     return reply.redirect(backToDashboard('google'))
   })
 
@@ -47,17 +49,18 @@ export async function oauthRoutes(app: FastifyInstance) {
     return reply.redirect(`https://slack.com/oauth/v2/authorize?${params}`)
   })
 
-  app.get<Callback>('/api/oauth/slack/callback', async (request, reply) => {
+  app.get<Callback>('/api/oauth/slack/callback', { preHandler: requireUser }, async (request, reply) => {
     const { code, state } = request.query
-    const userId = state && readOAuthState(state)
-    if (!code || !userId) return reply.redirect(backToDashboard('slack_failed'))
+    if (!code || !state || !verifyOAuthState(state, request.userId)) {
+      return reply.redirect(backToDashboard('slack_failed'))
+    }
     const res = await new WebClient().oauth.v2.access({
       client_id: required('SLACK_CLIENT_ID'),
       client_secret: required('SLACK_CLIENT_SECRET'),
       code,
       redirect_uri: slackRedirect(),
     })
-    await saveIntegration(userId, 'slack', { access_token: res.access_token }, { team: res.team?.name })
+    await saveIntegration(request.userId, 'slack', { access_token: res.access_token }, { team: res.team?.name })
     return reply.redirect(backToDashboard('slack'))
   })
 }

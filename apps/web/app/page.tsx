@@ -59,6 +59,8 @@ export default function IntegrationsPage() {
         {linkUrl && (
           <p className="text-sm">
             Open within 10 minutes: <a href={linkUrl} target="_blank" className="text-indigo-600 underline">{linkUrl}</a>
+            <br />
+            <span className="text-gray-500">Don't share this link: whoever opens it first links their chat to your account.</span>
           </p>
         )}
       </section>

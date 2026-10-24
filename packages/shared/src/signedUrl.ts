@@ -19,9 +19,13 @@ export function createOAuthState(userId: string): string {
   return `${payload}.${sign(payload)}`
 }
 
-export function readOAuthState(state: string): string | null {
+/**
+ * True if `state` is valid, unexpired and was created for `sessionUserId`.
+ * Checking the logged-in user stops someone sending their own OAuth link to a victim,
+ * which would attach the victim's Google/Slack account to the sender's user.
+ */
+export function verifyOAuthState(state: string, sessionUserId: string): boolean {
   const [userId, exp, sig] = state.split('.')
-  if (!userId || !exp || !sig) return null
-  if (Number(exp) * 1000 < Date.now() || !verifySignature(`${userId}.${exp}`, sig)) return null
-  return userId
+  if (!userId || !exp || !sig || userId !== sessionUserId) return false
+  return Number(exp) * 1000 >= Date.now() && verifySignature(`${userId}.${exp}`, sig)
 }
