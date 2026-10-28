@@ -1,7 +1,16 @@
-import { Bot, InlineKeyboard, InputFile } from 'grammy'
+import { Bot, GrammyError, InlineKeyboard, InputFile } from 'grammy'
 import type { IncomingMessage, MessagingAdapter } from './types'
 
 const MAX_TEXT = 4000 // Telegram limit is 4096
+
+/** Replies use **bold**; Telegram only renders it as HTML, so everything else is escaped. */
+export function toTelegramHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/gs, '<b>$1</b>')
+}
 
 export class TelegramAdapter implements MessagingAdapter {
   private bot: Bot
@@ -50,7 +59,17 @@ export class TelegramAdapter implements MessagingAdapter {
   }
 
   async sendText(chatId: string, text: string) {
-    await this.bot.api.sendMessage(chatId, text.slice(0, MAX_TEXT))
+    await this.sendFormatted(chatId, text.slice(0, MAX_TEXT))
+  }
+
+  // Falls back to plain text if Telegram can't parse the HTML, so the reply is never lost
+  private async sendFormatted(chatId: string, text: string, extra: { reply_markup?: InlineKeyboard } = {}) {
+    try {
+      await this.bot.api.sendMessage(chatId, toTelegramHtml(text), { ...extra, parse_mode: 'HTML' })
+    } catch (err) {
+      if (!(err instanceof GrammyError && err.error_code === 400)) throw err
+      await this.bot.api.sendMessage(chatId, text, extra)
+    }
   }
 
   async sendFile(chatId: string, file: { name: string; data: Buffer }, caption?: string) {
@@ -64,7 +83,7 @@ export class TelegramAdapter implements MessagingAdapter {
     const keyboard = new InlineKeyboard()
       .text('✅ Confirm', `confirm:${taskId}:yes`)
       .text('❌ Cancel', `confirm:${taskId}:no`)
-    await this.bot.api.sendMessage(chatId, text.slice(0, MAX_TEXT), { reply_markup: keyboard })
+    await this.sendFormatted(chatId, text.slice(0, MAX_TEXT), { reply_markup: keyboard })
   }
 
   async start() {

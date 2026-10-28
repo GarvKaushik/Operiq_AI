@@ -21,8 +21,6 @@ with every step recorded.
 
 </div>
 
-> 📸 The screenshots below are from before the rename and still show the old name; they will be retaken.
-
 <p align="center">
   <img src="docs/screenshots/landing.png" alt="Operiq landing page" width="900">
 </p>
