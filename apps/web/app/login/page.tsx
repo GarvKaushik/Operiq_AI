@@ -39,7 +39,7 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <aside className="relative hidden overflow-hidden bg-linear-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-12 text-white lg:flex lg:flex-col">
+      <aside className="relative hidden overflow-hidden bg-linear-to-br from-sky-500 via-indigo-500 to-purple-600 p-12 text-white lg:flex lg:flex-col">
         <Logo light />
         <div className="my-auto max-w-md space-y-6">
           <h2 className="text-4xl font-bold leading-tight">Your business assistant, one message away.</h2>

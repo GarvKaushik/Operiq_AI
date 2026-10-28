@@ -25,7 +25,7 @@ const SLACK_EMOJI: Record<string, string> = {
   globe: ':globe_with_meridians:',
 }
 
-/** How a post appears in Slack, e.g. "Riya · for Garv" with the agent's emoji, so shared workspaces can tell users apart. */
+/** How a post appears in Slack, e.g. "John · for Garv" with the agent's emoji, so shared workspaces can tell users apart. */
 export function slackIdentity(agent: { name: string; avatar: string } | null, userName: string | null) {
   const firstName = userName?.trim().split(/\s+/)[0]
   const name = agent?.name ?? 'Assistant'

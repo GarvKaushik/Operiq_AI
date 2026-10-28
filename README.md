@@ -1,10 +1,14 @@
 <div align="center">
 
-# 🤖 Byizon
+<img src="apps/web/public/logo.png" alt="Operiq logo" width="96">
 
-### Your AI business assistant: run your business by chatting
+# Operiq
 
-Set up a personal AI agent on the website, then send it instructions on Telegram.
+### Smart operations, from your chat
+
+**[▶ Watch the demo video](DEMO_VIDEO_LINK)** <!-- TODO: replace with the new recording -->
+
+A personal full-stack project: an AI agent you set up on the website and then instruct on Telegram.
 It analyzes your sheets, builds reports with charts, schedules meetings and updates your team on Slack,
 with every step recorded.
 
@@ -15,12 +19,12 @@ with every step recorded.
 ![Redis](https://img.shields.io/badge/Redis-BullMQ-DC382D?logo=redis&logoColor=white)
 ![Tests](https://img.shields.io/badge/tests-68%20passing-22C55E)
 
-**[▶ Watch the demo video](https://screenrec.com/share/JQTgHlfY7t)**
-
 </div>
 
+> 📸 The screenshots below are from before the rename and still show the old name; they will be retaken.
+
 <p align="center">
-  <img src="docs/screenshots/landing.png" alt="Byizon landing page" width="900">
+  <img src="docs/screenshots/landing.png" alt="Operiq landing page" width="900">
 </p>
 
 | Create your agent | Dashboard |
@@ -50,7 +54,7 @@ with every step recorded.
 | 📄 **Reports** | A summary card image in the chat plus an A4 PDF with a chart, delivered with an expiring signed link |
 | 📁 **Saved sheets** | Save a sheet as `sales` and say *"my sales sheet"*; a default sheet is used when none is named |
 | 📅 **Calendar** | Events with a Google Meet link and invites (defaults: 1 hour, local timezone) |
-| 🟪 **Slack** | Posts and report files go only to approved channels, shown as *"Riya · for Garv"* |
+| 🟪 **Slack** | Posts and report files go only to approved channels, shown as *"John · for Garv"* |
 | 🛡️ **Safety** | Confirmation before external actions, no duplicate actions on retry, and a check that catches replies claiming actions that never happened |
 | 🔑 **Accounts** | Change password, plus "forgot password" delivered to the user's linked Telegram chat |
 
@@ -237,6 +241,8 @@ Set `APP_URL` to the tunnel URL and update the Google and Slack redirect URLs. F
 
 ## ☁️ Deployment
 
+Operiq is a demo project that runs locally (see [Quick start](#-quick-start)). This section documents how it would be hosted.
+
 The app is five parts: **web** (Next.js), **api** (Fastify + Telegram bot), **worker**, **PostgreSQL** and **Redis**.
 Platforms that run Node directly (e.g. Render, Railway) need no Docker.
 
@@ -261,7 +267,7 @@ Platforms that run Node directly (e.g. Render, Railway) need no Docker.
 
 ## ⚠️ Known limitations
 
-- **Messaging channel:** Telegram is implemented; WhatsApp (named in the brief) isn't yet. Agent and worker code only use the `MessagingAdapter` interface, so WhatsApp can be added as another adapter.
+- **Messaging channel:** Telegram is implemented; WhatsApp is a planned channel. Agent and worker code only use the `MessagingAdapter` interface, so WhatsApp can be added as another adapter.
 - **Calendar:** events can be created but not edited; the agent says so instead of creating a duplicate.
 - **Google Sheets:** read-only (no writing to sheets).
 - **File storage:** local disk with signed links instead of object storage; old files are never cleaned up.
@@ -276,13 +282,13 @@ Platforms that run Node directly (e.g. Render, Railway) need no Docker.
 ## 🎬 Demo script
 
 1. **Landing page** → *Get started* → sign up with name, email and password.
-2. **Create your agent:** pick an avatar, name it (e.g. "Riya"), choose a personality. The preview updates live.
+2. **Create your agent:** pick an avatar, name it (e.g. "John"), choose a personality. The preview updates live.
 3. **Welcome screen:** *Link Telegram* → open the bot → **Start** → "✅ Linked!". (Network blocks `t.me`? Search the bot in Telegram and send the `/start <code>` shown.)
 4. **Connect Google and Slack.** On the dashboard, approve `#sales` and save a Google Sheet as `sales`.
 5. **File → report:** send the bot a CSV/XLSX (e.g. `Week, Region, Revenue, Cost, Orders`). It replies with a summary, a `📄 Report:` link, a **summary card image** and the **PDF**. Change the link's `sig` and you get 403.
-6. **Sheet, in Hinglish:** *"Riya, meri sales sheet analyze karo aur graphs ke saath report banao"*. The reply comes back in Hinglish with a report.
+6. **Sheet, in Hinglish:** *"John, meri sales sheet analyze karo aur graphs ke saath report banao"*. The reply comes back in Hinglish with a report.
 7. **Calendar:** *"Schedule a 30 min review tomorrow at 4pm with alice@example.com"* → ✅ Confirm → event and Meet links.
-8. **Slack, approved:** *"Send the report to #sales"* → ✅ Confirm → `💬 Posted to Slack #sales with …pdf`. In Slack the post is attributed to "Riya · for <name>".
+8. **Slack, approved:** *"Send the report to #sales"* → ✅ Confirm → `💬 Posted to Slack #sales with …pdf`. In Slack the post is attributed to "John · for <name>".
 9. **Slack, refused:** *"Post hello to #general"* (not approved) → refused; nothing is posted.
 10. **Audit log:** *Tasks* → open a task → step timeline with inputs, outputs, errors, durations and external IDs.
 11. **Retry safety:** start a Slack post, restart `pnpm dev` before confirming, then confirm → exactly one message.

@@ -3,8 +3,8 @@ import { systemPrompt } from './prompt'
 
 describe('systemPrompt', () => {
   it('uses the agent persona when configured', () => {
-    const prompt = systemPrompt({ fileId: null, agent: { name: 'Riya', personality: 'Warm and friendly.' } })
-    expect(prompt).toContain('You are Riya')
+    const prompt = systemPrompt({ fileId: null, agent: { name: 'John', personality: 'Warm and friendly.' } })
+    expect(prompt).toContain('You are John')
     expect(prompt).toContain('Personality and tone: Warm and friendly.')
   })
 

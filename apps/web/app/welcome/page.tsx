@@ -44,7 +44,7 @@ export default function WelcomePage() {
           <span className="text-sm text-slate-500">Step 2 of 2</span>
         </div>
         <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-slate-200">
-          <div className="h-full w-full rounded-full bg-linear-to-r from-indigo-600 to-violet-600" />
+          <div className="h-full w-full rounded-full bg-linear-to-r from-sky-500 to-purple-600" />
         </div>
 
         <div className="mt-12 flex flex-col items-center text-center">

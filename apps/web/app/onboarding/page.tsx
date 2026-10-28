@@ -23,7 +23,7 @@ export default function OnboardingPage() {
           <span className="text-sm text-slate-500">Step 1 of 2</span>
         </div>
         <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-slate-200">
-          <div className="h-full w-1/2 rounded-full bg-linear-to-r from-indigo-600 to-violet-600" />
+          <div className="h-full w-1/2 rounded-full bg-linear-to-r from-sky-500 to-purple-600" />
         </div>
 
         <div className="mt-10 mb-8">

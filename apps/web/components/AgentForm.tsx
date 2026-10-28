@@ -10,8 +10,8 @@ type Props = { initial?: Agent | null; submitLabel: string; onSaved: () => void 
 
 /** Pick avatar, name and personality, with a live preview of the agent. */
 export default function AgentForm({ initial, submitLabel, onSaved }: Props) {
-  const [avatar, setAvatar] = useState(initial?.avatar ?? AVATARS[0].id)
-  const [name, setName] = useState(initial?.name ?? 'Riya')
+  const [avatar, setAvatar] = useState(initial?.avatar ?? 'businessman')
+  const [name, setName] = useState(initial?.name ?? 'John')
   const [personality, setPersonality] = useState(initial?.personality ?? PERSONALITIES[0].text)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -89,7 +89,7 @@ export default function AgentForm({ initial, submitLabel, onSaved }: Props) {
       </form>
 
       {/* Live preview */}
-      <div className={`${card} flex flex-col items-center gap-4 bg-linear-to-b from-indigo-50 to-white p-6 text-center`}>
+      <div className={`${card} flex flex-col items-center gap-4 bg-linear-to-b from-sky-50 to-white p-6 text-center`}>
         <span className="text-xs font-semibold tracking-wide text-indigo-600 uppercase">Preview</span>
         <AgentAvatar avatar={avatar} size="xl" />
         <div>

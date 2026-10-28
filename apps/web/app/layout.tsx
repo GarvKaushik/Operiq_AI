@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import './globals.css'
 
 export const metadata = {
-  title: 'Byizon: your AI business assistant',
+  title: 'Operiq: Smart operations, from your chat',
   description: 'Analyze sheets, create reports, schedule meetings and post to Slack, just by chatting.',
 }
 

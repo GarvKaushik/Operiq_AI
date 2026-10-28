@@ -26,9 +26,9 @@ function ChatPreview() {
   return (
     <div className={`${card} relative w-full max-w-md overflow-hidden p-0 shadow-xl shadow-indigo-500/10`}>
       <div className="flex items-center gap-3 border-b border-slate-100 bg-white px-4 py-3">
-        <div className="grid h-9 w-9 place-items-center rounded-full bg-linear-to-br from-fuchsia-500 to-violet-600 text-lg">👩🏽‍💼</div>
+        <div className="grid h-9 w-9 place-items-center rounded-full bg-linear-to-br from-sky-500 to-indigo-600 text-lg">👨🏽‍💼</div>
         <div>
-          <p className="text-sm font-semibold">Riya</p>
+          <p className="text-sm font-semibold">John</p>
           <p className="text-xs text-emerald-600">online</p>
         </div>
         <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">Sample</span>
@@ -52,7 +52,7 @@ function ChatPreview() {
           </div>
           <div className="mt-3 flex h-20 items-end gap-2">
             {[55, 62, 74, 88].map((h, i) => (
-              <div key={i} className="flex-1 rounded-t-md bg-linear-to-t from-indigo-600 to-violet-400" style={{ height: `${h}%` }} />
+              <div key={i} className="flex-1 rounded-t-md bg-linear-to-t from-purple-600 to-sky-400" style={{ height: `${h}%` }} />
             ))}
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function LandingPage() {
       </header>
 
       <section className="bg-dots relative overflow-hidden">
-        <div className="absolute inset-x-0 top-0 -z-0 h-96 bg-linear-to-b from-indigo-50/80 to-transparent" />
+        <div className="absolute inset-x-0 top-0 -z-0 h-96 bg-linear-to-b from-sky-50/80 to-transparent" />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
           <div className="space-y-6">
             <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm ring-1 ring-indigo-100">
@@ -136,7 +136,7 @@ export default function LandingPage() {
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {STEPS.map((s, i) => (
               <div key={s.title} className={`${card} p-6`}>
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-linear-to-br from-indigo-600 to-violet-600 text-sm font-bold text-white">
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-linear-to-br from-sky-500 to-purple-600 text-sm font-bold text-white">
                   {i + 1}
                 </span>
                 <h3 className="mt-4 font-semibold">{s.title}</h3>
@@ -148,7 +148,7 @@ export default function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="rounded-3xl bg-linear-to-br from-indigo-600 to-violet-700 px-8 py-14 text-center text-white shadow-xl shadow-indigo-500/20">
+        <div className="rounded-3xl bg-linear-to-br from-sky-500 to-purple-700 px-8 py-14 text-center text-white shadow-xl shadow-purple-500/20">
           <h2 className="text-3xl font-bold tracking-tight">Meet your new teammate</h2>
           <p className="mx-auto mt-3 max-w-md text-indigo-100">Create your agent and send your first instruction today.</p>
           <Link href={loggedIn ? '/dashboard' : '/login?mode=register'} className="mt-8 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 font-semibold text-indigo-700 shadow-md transition hover:bg-indigo-50">
@@ -158,7 +158,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="border-t border-slate-100 py-8 text-center text-sm text-slate-500">
-        © {new Date().getFullYear()} Byizon
+        © {new Date().getFullYear()} Operiq · Smart operations, from your chat
       </footer>
     </div>
   )

@@ -92,7 +92,7 @@ export default function DashboardPage() {
       )}
 
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-6 text-white shadow-lg shadow-indigo-500/20 sm:p-8">
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-sky-500 via-indigo-500 to-purple-600 p-6 text-white shadow-lg shadow-purple-500/20 sm:p-8">
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
           <AgentAvatar avatar={me.agent?.avatar} size="lg" />
           <div>

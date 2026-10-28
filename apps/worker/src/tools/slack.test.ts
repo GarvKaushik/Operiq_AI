@@ -23,14 +23,14 @@ describe('slack allowlist matching', () => {
 
 describe('slack identity (who a post is for)', () => {
   it('shows the agent name, the requester and the avatar emoji', () => {
-    expect(slackIdentity({ name: 'Riya', avatar: 'businesswoman' }, 'Garv Kaushik')).toEqual({
-      username: 'Riya · for Garv',
-      icon_emoji: ':female-office-worker:',
+    expect(slackIdentity({ name: 'John', avatar: 'businessman' }, 'Garv Kaushik')).toEqual({
+      username: 'John · for Garv',
+      icon_emoji: ':male-office-worker:',
     })
   })
 
   it('falls back when the user has no name, no agent or an unknown avatar', () => {
-    expect(slackIdentity({ name: 'Riya', avatar: 'robot' }, null)).toEqual({ username: 'Riya', icon_emoji: ':robot_face:' })
+    expect(slackIdentity({ name: 'John', avatar: 'robot' }, null)).toEqual({ username: 'John', icon_emoji: ':robot_face:' })
     expect(slackIdentity(null, 'Garv')).toEqual({ username: 'Assistant · for Garv', icon_emoji: ':robot_face:' })
     expect(slackIdentity({ name: 'Max', avatar: 'unknown' }, '  ').icon_emoji).toBe(':robot_face:')
   })
