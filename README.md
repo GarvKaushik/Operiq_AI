@@ -6,7 +6,7 @@
 
 ### Smart operations, from your chat
 
-**[▶ Watch the demo video](DEMO_VIDEO_LINK)** <!-- TODO: replace with the new recording -->
+**[▶ Watch the demo video](https://drive.google.com/file/d/1_DeCDh6bpsXJi34R0zoPCawRezveqGMM/view?usp=drive_link)** <!-- TODO: replace with the new recording -->
 
 A personal full-stack project: an AI agent you set up on the website and then instruct on Telegram.
 It analyzes your sheets, builds reports with charts, schedules meetings and updates your team on Slack,
